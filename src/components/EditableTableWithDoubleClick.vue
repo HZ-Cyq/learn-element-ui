@@ -1,80 +1,53 @@
 <template>
     <div>
-      <el-table :data="tableData" border style="width: 100%">
-        <el-table-column prop="date" label="日期" width="180">
-          <template v-slot="scope">
-            <span v-if="!scope.row.editingDate" @dblclick="enableEdit(scope.row, 'date')">
-              {{ scope.row.date }}
-            </span>
-            <el-input
-              v-else
-              v-model="scope.row.date"
-              size="mini"
-              @blur="disableEdit(scope.row, 'date')"
-              @keydown.enter.native="disableEdit(scope.row, 'date')"
-              ref="dateInput"
-            />
-          </template>
-        </el-table-column>
-  
-        <el-table-column prop="name" label="姓名" width="180">
-          <template v-slot="scope">
-            <span v-if="!scope.row.editingName" @dblclick="enableEdit(scope.row, 'name')">
-              {{ scope.row.name }}
-            </span>
-            <el-input
-              v-else
-              v-model="scope.row.name"
-              size="mini"
-              @blur="disableEdit(scope.row, 'name')"
-              @keydown.enter.native="disableEdit(scope.row, 'name')"
-              ref="nameInput"
-            />
-          </template>
-        </el-table-column>
-  
-        <el-table-column prop="address" label="地址">
-          <template v-slot="scope">
-            <span v-if="!scope.row.editingAddress" @dblclick="enableEdit(scope.row, 'address')">
-              {{ scope.row.address }}
-            </span>
-            <el-input
-              v-else
-              v-model="scope.row.address"
-              size="mini"
-              @blur="disableEdit(scope.row, 'address')"
-              @keydown.enter.native="disableEdit(scope.row, 'address')"
-              ref="addressInput"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
+        <el-table :data="tableData2" border style="width: 100%">
+            <el-table-column v-for="(head, index) in tableHead" :key="index" :label="head">
+                <template v-slot="scope">
+                    <el-input v-if="editingCell[scope.$index]?.[index]" v-model="tableData2[scope.$index][index]" size="mini" ref="inputRefs"
+                        @blur="disableEdit(scope.$index, index)">
+                    </el-input>
+                    <span v-else @dblclick="enableEdit(scope.$index, index)">
+                        {{ scope.row[index] }}
+                    </span>
+                </template>
+            </el-table-column>
+        </el-table>
     </div>
-  </template>
-  
-  <script>
-  export default {
+</template>
+
+<script>
+export default {
     data() {
-      return {
-        tableData: [
-          { date: "2024-03-01", name: "张三", address: "北京市朝阳区", editingDate: false, editingName: false, editingAddress: false },
-          { date: "2024-03-02", name: "李四", address: "上海市浦东新区", editingDate: false, editingName: false, editingAddress: false },
-          { date: "2024-03-03", name: "王五", address: "广州市天河区", editingDate: false, editingName: false, editingAddress: false }
-        ]
-      };
+        return {
+            // 表格数据（二维数组）
+            tableData2: [
+                ["2024-03-01", "张三", "北京市朝阳区"],
+                ["2024-03-02", "李四", "上海市浦东新区"],
+                ["2024-03-03", "王五", "广州市天河区"]
+            ],
+            // 表头
+            tableHead: ["日期", "姓名", "地址"],
+            // 记录编辑状态的对象
+            editingCell: {} // 形如 { 0: { 1: true } } 表示第0行第1列处于编辑模式
+        };
     },
     methods: {
-      enableEdit(row, field) {
-        // this.$set(row, `editing${field.charAt(0).toUpperCase() + field.slice(1)}`, true);
-        row[`editing${field.charAt(0).toUpperCase() + field.slice(1)}`] = true;
-        this.$nextTick(() => {
-          this.$refs[`${field}Input`] && this.$refs[`${field}Input`].focus();
-        });
-      },
-      disableEdit(row, field) {
-        this.$set(row, `editing${field.charAt(0).toUpperCase() + field.slice(1)}`, false);
-      }
+        enableEdit(rowIndex, colIndex) {
+            if (!this.editingCell[rowIndex]) {
+                this.$set(this.editingCell, rowIndex, {});
+            }
+            this.$set(this.editingCell[rowIndex], colIndex, true);
+            this.$nextTick(() => {
+                const input = this.$refs.inputRefs?.[0]?.$el.querySelector("input");
+                if (input) input.focus();
+            });
+        },
+        disableEdit(rowIndex, colIndex) {
+            if (this.editingCell[rowIndex]) {
+                this.$set(this.editingCell[rowIndex], colIndex, false);
+            }
+            console.log(this.tableData2);
+        }
     }
-  };
-  </script>
-  
+};
+</script>
