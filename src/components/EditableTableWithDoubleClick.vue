@@ -3,10 +3,13 @@
         <el-table :data="paginatedData" border style="width: 100%">
             <el-table-column v-for="(head, index) in tableHead" :key="index" :label="head">
                 <template v-slot="scope">
-                    <el-input v-if="editingCell[scope.$index]?.[index]" v-model="tableData2[scope.$index][index]" size="mini" ref="inputRefs"
-                        @blur="disableEdit(scope.$index, index)">
+                    <el-input v-if="editingCell[calRow(scope.$index)]?.[index]"
+                        v-model="tableData2[calRow(scope.$index)][index]"
+                        size="mini"
+                        ref="inputRefs"
+                        @blur="disableEdit(calRow(scope.$index), index)">
                     </el-input>
-                    <span v-else @dblclick="enableEdit(scope.$index, index)">
+                    <span v-else @dblclick="enableEdit(calRow(scope.$index), index)">
                         {{ scope.row[index] }}
                     </span>
                 </template>
@@ -14,11 +17,13 @@
         </el-table>
         <!-- 分页组件 -->
         <el-pagination
+            @size-change="handleSizeChange"
             @current-change="handlePageChange"
             :current-page="currentPage"
+            :page-sizes="[2, 5, 10, 20]"
             :page-size="pageSize"
             :total="tableData2.length"
-            layout="prev, pager, next"
+            layout="total, sizes, prev, pager, next, jumper"
         />
     </div>
 </template>
@@ -54,6 +59,7 @@ export default {
     },
     methods: {
         enableEdit(rowIndex, colIndex) {
+            //rowIndex = (this.currentPage - 1) * this.pageSize + rowIndex;
             if (!this.editingCell[rowIndex]) {
                 this.$set(this.editingCell, rowIndex, {});
             }
@@ -64,6 +70,7 @@ export default {
             });
         },
         disableEdit(rowIndex, colIndex) {
+            //rowIndex = (this.currentPage - 1) * this.pageSize + rowIndex;
             if (this.editingCell[rowIndex]) {
                 this.$set(this.editingCell[rowIndex], colIndex, false);
             }
@@ -72,6 +79,15 @@ export default {
         // 切换分页
         handlePageChange(newPage) {
             this.currentPage = newPage;
+        },
+        // 修改每页显示条数
+        handleSizeChange(newSize) {
+            this.pageSize = newSize;
+            this.currentPage = 1; // 重置到第一页
+        },
+
+        calRowIndex(rowIndexInPage) {
+            return this.pageSize * (this.currentPage - 1) + rowIndexInPage;
         }
     }
 };
